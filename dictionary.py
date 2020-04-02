@@ -1,6 +1,3 @@
-from data_prepared import save_sentences
-
-
 class Dictionary():
     def __init__(self,
                  file=None,
@@ -18,6 +15,7 @@ class Dictionary():
                         break
                     line = line[:-1]
                     word, ids = line.split()
+                    ids = int(ids)
                     self.word_to_id[word] = ids
                     self.id_to_word[ids] = word
         else:
@@ -36,8 +34,8 @@ class Dictionary():
                 if cnt >= min_freq and cnt / total_words < max_freq:
                     filter_word_cnt.append((word, cnt))
             if voc_size > 0:
-                filter_word_cnt.sort(key=lambda x: x[1], reversed=True)
-                filter_word_cnt = filter_word_cnt[:voc_size]
+                filter_word_cnt.sort(key=lambda x: x[1], reverse=True)
+                filter_word_cnt = filter_word_cnt[0:voc_size]
             ids = 0
             for word, cnt in filter_word_cnt:
                 self.word_to_id[word] = ids
@@ -58,22 +56,5 @@ class Dictionary():
     def exist(self, word):
         return word in self.word_to_id
 
-
-if __name__ == '__main__':
-    dictionary = Dictionary("data/dict")
-    print("加载字典完成")
-    corpus = []
-    with open('data/multi_seg_sents', 'rt', encoding='utf-8') as fin:
-        while True:
-            line = fin.readline()
-            if not line:
-                break
-            line = line[:-1]
-            corpus.append(line)
-    new_corpus = []
-    for sentence in corpus:
-        words = sentence.split()
-        filter_words = [word for word in words if dictionary.exist(word)]
-        if len(filter_words) > 2:
-            new_corpus.append(" ".join(filter_words))
-    save_sentences(new_corpus, "data/filter_seg_sents")
+    def size(self):
+        return len(self.word_to_id)

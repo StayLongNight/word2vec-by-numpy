@@ -7,6 +7,7 @@ seg_sent_file = "data/seg_sents"
 filter_seg_sent_file = "data/filter_seg_sents"
 train_file = "data/train_set"
 stop_words_file = "data/cn_stopwords.txt"
+dict_file = "data/dict"
 windows_size = 3
 
 
@@ -35,7 +36,7 @@ def parse_xml(line):
     return sentences
 
 
-def sent_to_train_set(sentence, c=3):
+def sent_to_train_set(sentence, c=windows_size):
     samples = []
     words = sentence.split()
     for i, word in enumerate(words):
@@ -51,11 +52,13 @@ def get_filter(dictionary):
         filter_words = [word for word in words if dictionary.exist(word)]
         if len(filter_words) > 2:
             sentences.append(" ".join(filter_words))
+        return sentences
 
     return word_filter
 
 
-def data_transform(input_file, output_file, processor):
+def data_transform(input_file, output_file, processor, n=-1):
+    cnt = 0
     with open(input_file, 'rt', encoding='utf-8') as fin:
         with open(output_file, 'wt', encoding='utf-8') as fout:
             while True:
@@ -64,8 +67,13 @@ def data_transform(input_file, output_file, processor):
                     break
                 sentence = sentence[:-1]
                 sentences = processor(sentence)
-                for sent in sentences:
-                    print(sent, file=fout)
+                if sentences != []:
+                    for sent in sentences:
+                        print(sent, file=fout)
+                if n > 0:
+                    cnt += 1
+                    if cnt == n:
+                        break
 
 
 def read_sentences(file):
@@ -80,17 +88,38 @@ def read_sentences(file):
     return sentences
 
 
+def get_word_freq(input_file, output_file):
+    sentences = []
+    word_cnt = {}
+    with open(input_file, 'rt', encoding='utf-8') as fin:
+        while True:
+            line = fin.readline()
+            if not line:
+                break
+            sentences.append(line[:-1])
+    for sentence in sentences:
+        for word in sentence.split():
+            if word not in word_cnt:
+                word_cnt[word] = 1
+            else:
+                word_cnt[word] += 1
+    with open(output_file, 'wt', encoding='utf-8') as fout:
+        for word, cnt in word_cnt.items():
+            print(word, ' ', cnt, file=fout)
+
+
 if __name__ == '__main__':
-    data_transform(xml_file, sentence_file, parse_xml)
+    #data_transform(xml_file, sentence_file, parse_xml)
+    '''
     corpus = read_sentences(seg_sent_file)
-    dictionary = Dictionary(corpus=[],
+    dictionary = Dictionary(corpus=corpus,
                             max_freq=0.5,
                             min_freq=3,
-                            voc_size=500000)
+                            voc_size=10000)
+    dictionary.save_dict(dict_file)
+    '''
+    dictionary = Dictionary(file=dict_file)
     word_filter = get_filter(dictionary)
-    data_transform(
-        seg_sent_file,
-        filter_seg_sent_file,
-        word_filter
-    )
+    data_transform(seg_sent_file, filter_seg_sent_file, word_filter, 500000)
     data_transform(filter_seg_sent_file, train_file, sent_to_train_set)
+    get_word_freq(filter_seg_sent_file, 'data/word_cnt')

@@ -1,2 +1,2 @@
-用numpy实现简单的word2vec，包括cbow、skip gram，negative sampling，hierachical softmax
+用numpy实现的简易word2vec，包括cbow，skip gram，negative sampling，hierachical softmax
 语料采用搜狐新闻
