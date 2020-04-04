@@ -32,13 +32,3 @@ class SampleGenerator():
 
     def stop(self):
         self.reader.terminate()
-
-
-if __name__ == '__main__':
-    train_set = SampleGenerator('data/train_set', 100)
-    train_set.start()
-    for data in train_set:
-        print(data)
-    for data in train_set:
-        print(data)
-    train_set.stop()

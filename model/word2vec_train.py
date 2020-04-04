@@ -5,18 +5,6 @@ from model.optimize_model import NegSample, HierachicalSoftmax
 from model.word2vec_model import Word2VecModel
 
 
-def save_model(obj, model_file):
-    with open(model_file, 'wb') as fout:
-        pickle.dump(obj, fout)
-
-
-def load_model(model_file):
-    model = None
-    with open(model_file, 'rb') as fin:
-        model = pickle.load(fin)
-    return model
-
-
 class Word2Vec():
     def __init__(self, dictionary, dim, model_type, optimize_type):
         self.dict = dictionary
@@ -30,7 +18,6 @@ class Word2Vec():
                                        dim=self.dim,
                                        dictionary=self.dict)
         elif optimize_type == 'HIERACHICAL_SOFTMAX':
-            print(1)
             self.optimizer = HierachicalSoftmax(word_cnt_file='data/word_cnt',
                                                 dim=self.dim,
                                                 dictionary=self.dict)
@@ -39,18 +26,19 @@ class Word2Vec():
         if self.model_type == 'SKIP_GRAM':
             center_pos = self.dict(center)
             ys = [self.dict(word) for word in windows]
-            x = self.W[center_pos]
+            x = self.W[center_pos, :]
             for y in ys:
                 delta_x = self.optimizer.backward(x, y, lr)
                 x -= lr * delta_x
         elif self.model_type == 'CBOW':
-            y_id = self.dict(center)
+            y_pos = self.dict(center)
             windows_pos = [self.dict(word) for word in windows]
             windows_vecs = self.W[windows_pos]
             windows_size = windows_vecs.shape[0]
             x = windows_vecs.sum(axis=0) / windows_size
-            delta_x = self.optimizer.backward(x, y_id, lr)
-            windows_vecs -= delta_x * lr / windows_size
+            delta_x = self.optimizer.backward(x, y_pos, lr)
+            for pos in windows_pos:
+                self.W[pos, :] -= delta_x * lr / windows_size
 
     def train(self, train_data, epoch, lr, model_file=None):
         last_time = time.time()

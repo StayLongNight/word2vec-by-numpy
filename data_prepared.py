@@ -109,16 +109,13 @@ def get_word_freq(input_file, output_file):
 
 
 if __name__ == '__main__':
-    #data_transform(xml_file, sentence_file, parse_xml)
-    '''
+    data_transform(xml_file, sentence_file, parse_xml)
     corpus = read_sentences(seg_sent_file)
     dictionary = Dictionary(corpus=corpus,
                             max_freq=0.5,
                             min_freq=3,
                             voc_size=10000)
     dictionary.save_dict(dict_file)
-    '''
-    dictionary = Dictionary(file=dict_file)
     word_filter = get_filter(dictionary)
     data_transform(seg_sent_file, filter_seg_sent_file, word_filter, 500000)
     data_transform(filter_seg_sent_file, train_file, sent_to_train_set)

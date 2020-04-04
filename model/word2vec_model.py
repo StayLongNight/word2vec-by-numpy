@@ -5,7 +5,7 @@ import pickle
 
 class Word2VecModel():
     def __init__(self, W, dictionary):
-        self.W = W
+        self.W = W / np.sqrt((W * W).sum(axis=1).reshape(-1, 1))
         self.dict = dictionary
 
     def get_word_vec(self, word):
@@ -32,7 +32,7 @@ class Word2VecModel():
         while que.qsize() > 0:
             score, ids = que.get()
             word_list.append((score, self.dict.get_word(ids)))
-        return word_list
+        return word_list[::-1]
 
     def save_model(self, model_file):
         with open(model_file, 'wb') as fout:
